@@ -195,20 +195,4 @@ public class Controller {
 	}
 
 
-	public TextField getTxtUsername() {
-		return txtUsername;
-	}
-
-	public void setTxtUsername(TextField txtUsername) {
-		this.txtUsername = txtUsername;
-	}
-
-	public ScrollPane getScrPanel() {
-		return scrPanel;
-	}
-
-	public void setScrPanel(ScrollPane scrPanel) {
-		this.scrPanel = scrPanel;
-	}
-
 }

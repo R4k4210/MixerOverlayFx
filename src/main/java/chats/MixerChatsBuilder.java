@@ -3,14 +3,10 @@ package chats;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.*;
-import sample.Controller;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -26,8 +22,7 @@ public class MixerChatsBuilder {
 
 		double scrollWidthSize = scrollWidth;
 		JsonElement rawJsonElement = element;
-		String chat = "";
-		//Image defaultAvatar = new Image("/icons/user-default.png");
+		Image defaultAvatar = new Image("/user-default.png");
 		String space = " ";
 		Text msg = null;
 		Text username = null;
@@ -50,13 +45,16 @@ public class MixerChatsBuilder {
 			//Get raw chat
 			JsonObject messageObject = object.get("message").getAsJsonObject();
 			//Set default avatar if user haven't one.
-			//avatar = defaultAvatar;
+			avatar = defaultAvatar;
 			if(!object.get("user_avatar").toString().isEmpty()){
 				String partialAvatar = cleanSymbols(object.get("user_avatar").toString());
-				avatar = new Image(partialAvatar);
+				try {
+					avatar = new Image(partialAvatar);
+				}catch (Exception e){
+					System.out.println(e);
+				}
 			}
 			imgView.setImage(avatar);
-			System.out.println("avatar URL -" +object.get("user_avatar").toString());
 			//Get username from raw object
 			String partialUsername = cleanSymbols(object.get("user_name").toString());
 			username = new Text(space + partialUsername  + " -" + space);

@@ -18,11 +18,12 @@
             <TextField id="txt-username" fx:id="txtUsername" layoutX="138.0" layoutY="19.0" prefWidth="161.0" />
             <Label layoutX="58.0" layoutY="22.0" text="Username:" />
             <CheckBox fx:id="chkHideShow" layoutX="21.0" layoutY="24.0" mnemonicParsing="false" onAction="#checkBoxValueChange" text="" />
+            <Button id="btn-start-buttom" fx:id="btnCancel" disable="true" layoutX="317.0" layoutY="20.0" mnemonicParsing="false" onMouseClicked="#cancelChatting" text="Cancel" visible="false" />
           </children>
         </AnchorPane>
         <AnchorPane id="bottom-pane" fx:id="bottomAnchorOnSplitPane" minHeight="0.0" minWidth="0.0" prefHeight="288.0" prefWidth="384.0">
           <children>
-            <ScrollPane fx:id="scrPanel" content="$null" disable="false" fitToHeight="true" fitToWidth="true" focusTraversable="false" layoutX="-1.0" layoutY="0.0" mouseTransparent="true" opacity="1.0" prefHeight="333.0" prefWidth="400.0" style="" styleClass="viewport">
+            <ScrollPane fx:id="scrPanel" content="$null" disable="false" fitToHeight="true" fitToWidth="true" focusTraversable="false" layoutX="-1.0" layoutY="0.0" mouseTransparent="false" opacity="1.0" prefHeight="333.0" prefWidth="400.0" style="" styleClass="viewport">
               <stylesheets>
                 <URL value="@style.css" />
               </stylesheets>

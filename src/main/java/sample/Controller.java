@@ -7,12 +7,13 @@ import com.mixer.api.MixerAPI;
 import com.mixer.api.resource.channel.MixerChannel;
 import com.mixer.api.services.impl.ChannelsService;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -44,6 +45,8 @@ public class Controller {
 	private AnchorPane bottomAnchorOnSplitPane;
 	@FXML
 	private Button btnStart;
+	@FXML
+	private Button btnCancel;
 
 
 
@@ -51,10 +54,17 @@ public class Controller {
 
 	}
 
+	@FXML
+	private void initialize(){
+		normalStyle();
+	}
 
-	ArrayList<String> storedIds = new ArrayList<String>();
-	ArrayList<TextFlow> chats = new ArrayList<TextFlow>();
-	GridPane chat = new GridPane();
+
+	public ArrayList<String> storedIds = new ArrayList<String>();
+	public ArrayList<TextFlow> chats = new ArrayList<TextFlow>();
+	public GridPane chat = new GridPane();
+	public TimerTask addChatTask = null;
+	public TimerTask task = null;
 
 	boolean firstTimeCalledAPI = false;
 
@@ -71,9 +81,7 @@ public class Controller {
 
 		} else {
 
-			addChatsToViewPanel();
-
-			TimerTask task = new TimerTask() {
+			task = new TimerTask() {
 
 				@Override
 				public void run() {
@@ -110,27 +118,31 @@ public class Controller {
 						chats.add(chatToAdd);
 					}
 
-					System.out.println("Tamaño de StoredIDs: " + storedIds.size());
-					System.out.println("Tamaño de Chats: " + chats.size());
-
 				}
 			};
 
 			Timer timer = new Timer();
 			timer.schedule(task, new Date(), 180000);
 
-			firstTimeCalledAPI = true;
-			System.out.println("Pongo el flag en true");
+			addChatsToViewPanel();
+			changeStatusButtonStart(1);
+			changeStatusButtonCancel(0);
 		}
 
+	}
+
+	public void cancelChatting(MouseEvent mouseEvent) {
+		task.cancel();
+		addChatTask.cancel();
+		changeStatusButtonStart(0);
+		changeStatusButtonCancel(1);
 	}
 
 
 	public void addChatsToViewPanel(){
 
 		//Add chats to text area every xxx seconds..
-
-		TimerTask addChatTask = new TimerTask() {
+		addChatTask = new TimerTask() {
 			@Override
 			public void run() {
 				Platform.runLater(new Runnable() {
@@ -138,14 +150,30 @@ public class Controller {
 					@Override
 					public void run() {
 
+						//If counter is equal to the number of chats on array, stop the task
+						if((chats.size() - 1) == addChatCount){
+							stopAddChatTask(addChatTask);
+						}
+
 						//System.out.println("Se agrega un textflow al scroll panel");
 						TextFlow tx = new TextFlow(chats.get(addChatCount));
 						tx.setBackground(Background.EMPTY);
 						//chat.setBackground(Background.EMPTY);
 						chat.addRow(addChatCount, tx);
 						scrPanel.setContent(chat);
-						scrPanel.setPadding(new Insets(6));
-						//scrPanel.setPannable(true);
+						//Automatic scroll to bottom
+						chat.heightProperty().addListener(new ChangeListener() {
+
+							@Override
+							public void changed(ObservableValue observable, Object oldvalue, Object newValue) {
+
+								scrPanel.setVvalue((Double)newValue );
+							}
+						});
+
+						System.out.println("Tamaño de StoredIDs: " + storedIds.size());
+						System.out.println("Tamaño de Chats: " + chats.size());
+						System.out.println("Tamaño del contador: " + addChatCount);
 
 						addChatCount++;
 					}
@@ -155,44 +183,72 @@ public class Controller {
 
 		Timer chatTimer = new Timer();
 		chatTimer.schedule(addChatTask, 20000, 1000);
-/*
-		if(firstTimeCalledAPI){
-			if(chats.size() == addChatCount){
-				addChatTask.cancel();
-				firstTimeCalledAPI = false;
-				System.out.println("Se cancela el llamado porque no tengo chats! Reinicio el flag para empezar denuevo");
 
-			}
-		}
-*/
 	}
 
+	public static void stopAddChatTask(TimerTask addChatTask){
+		System.out.println("Se cancela el Timer porque no hay mas chats!");
+		addChatTask.cancel();
+	}
 
 	public void checkBoxValueChange(ActionEvent actionEvent) {
 		boolean selected = chkHideShow.isSelected();
 		if(selected){
-			System.out.println("Seleccionado - " + selected);
-			mainContainer.setBackground(Background.EMPTY);
-			scrPanel.setBackground(Background.EMPTY);
-			splitPane.setBackground(Background.EMPTY);
-			topAnchorOnSplitPane.setBackground(Background.EMPTY);
-			bottomAnchorOnSplitPane.setBackground(Background.EMPTY);
-			btnStart.setBackground(Background.EMPTY);
-			txtUsername.setBackground(Background.EMPTY);
-			chat.setBackground(Background.EMPTY);
+			transparentStyle();
 		}else{
-			System.out.println("Desseleccionado - " + selected);
-			mainContainer.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-			scrPanel.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-			splitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-			topAnchorOnSplitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-			bottomAnchorOnSplitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-			btnStart.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-			txtUsername.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-			chat.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+			normalStyle();
 		}
 
 	}
 
+	private void transparentStyle(){
+		mainContainer.setBackground(Background.EMPTY);
+		scrPanel.setBackground(Background.EMPTY);
+		splitPane.setBackground(Background.EMPTY);
+		topAnchorOnSplitPane.setBackground(Background.EMPTY);
+		bottomAnchorOnSplitPane.setBackground(Background.EMPTY);
+		btnStart.setBackground(Background.EMPTY);
+		txtUsername.setBackground(Background.EMPTY);
+		chat.setBackground(Background.EMPTY);
+		btnCancel.setBackground(Background.EMPTY);
+	}
+
+	private void normalStyle(){
+		splitPane.setDividerPosition(20, 20);
+		scrPanel.setPadding(new Insets(6));
+		scrPanel.setPannable(true);
+		scrPanel.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+		mainContainer.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		scrPanel.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		splitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		topAnchorOnSplitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		bottomAnchorOnSplitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		btnStart.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+		txtUsername.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
+		chat.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		btnCancel.setBackground(new Background(new BackgroundFill(Color.LIGHTCORAL, CornerRadii.EMPTY, Insets.EMPTY)));
+	}
+
+	private void changeStatusButtonStart(int status){
+		if(status == 1){
+			btnStart.setDisable(true);
+			btnStart.setVisible(false);
+		}else{
+			btnStart.setDisable(false);
+			btnStart.setVisible(true);
+		}
+
+	}
+
+	private void changeStatusButtonCancel(int status){
+		if(status == 0){
+			btnCancel.setVisible(true);
+			btnCancel.setDisable(false);
+		}else{
+			btnCancel.setVisible(false);
+			btnCancel.setDisable(true);
+		}
+
+	}
 
 }

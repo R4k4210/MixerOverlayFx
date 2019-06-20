@@ -18,13 +18,12 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import mixer.api.operation.MixerApiOperation;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public class Controller {
@@ -48,6 +47,7 @@ public class Controller {
 	@FXML
 	private Button btnCancel;
 
+	private Stage stage;
 
 
 	public Controller(){
@@ -57,6 +57,7 @@ public class Controller {
 	@FXML
 	private void initialize(){
 		normalStyle();
+
 	}
 
 
@@ -65,6 +66,8 @@ public class Controller {
 	public GridPane chat = new GridPane();
 	public TimerTask addChatTask = null;
 	public TimerTask task = null;
+	private boolean addChatTaskIsStopped = false;
+	private int chatLimit = 5000;
 
 	boolean firstTimeCalledAPI = false;
 
@@ -100,8 +103,6 @@ public class Controller {
 					//65962121
 					int channelId = channel.id;
 
-					System.out.println(new Date());
-
 					JsonArray jsonResponse = null;
 
 					try {
@@ -113,16 +114,29 @@ public class Controller {
 					for (JsonElement obj : jsonResponse) {
 
 						double scrollWidth = scrPanel.getWidth();
-						TextFlow chatToAdd = new TextFlow(MixerChatsBuilder.buildChatStringFromJSONObject(obj, storedIds, scrollWidth));
-						chatToAdd.setPrefWidth(scrPanel.getWidth());
-						chats.add(chatToAdd);
+						try {
+							TextFlow chatToAdd = new TextFlow(MixerChatsBuilder.buildChatStringFromJSONObject(obj, storedIds, scrollWidth));
+							chatToAdd.setPrefWidth(scrPanel.getWidth());
+							chats.add(chatToAdd);
+						}catch (Exception e){
+							//System.out.println(e);
+						}
+
+					}
+
+					if(addChatTaskIsStopped){
+						if((chats.size() - 1) > addChatCount){
+							//System.out.println("Hay nuevos chats, podemos seguis agregando!!");
+							addChatTaskIsStopped = false;
+							addChatsToViewPanel();
+						}
 					}
 
 				}
 			};
 
 			Timer timer = new Timer();
-			timer.schedule(task, new Date(), 180000);
+			timer.schedule(task, new Date(), 5000);
 
 			addChatsToViewPanel();
 			changeStatusButtonStart(1);
@@ -136,6 +150,7 @@ public class Controller {
 		addChatTask.cancel();
 		changeStatusButtonStart(0);
 		changeStatusButtonCancel(1);
+		chats.clear();
 	}
 
 
@@ -153,42 +168,49 @@ public class Controller {
 						//If counter is equal to the number of chats on array, stop the task
 						if((chats.size() - 1) == addChatCount){
 							stopAddChatTask(addChatTask);
-						}
+						}else {
+							if(addChatCount >= chatLimit){
+								chat.getChildren().clear();
+								clearAllArraysAndStartAgain();
+							}else{
+								//System.out.println("Se agrega un textflow al scroll panel");
+								TextFlow tx = new TextFlow(chats.get(addChatCount));
+								tx.setBackground(Background.EMPTY);
+								tx.setPadding(new Insets(6));
+								chat.addRow(addChatCount, tx);
+								scrPanel.setContent(chat);
+								//Automatic scroll to bottom
+								chat.heightProperty().addListener(new ChangeListener() {
 
-						//System.out.println("Se agrega un textflow al scroll panel");
-						TextFlow tx = new TextFlow(chats.get(addChatCount));
-						tx.setBackground(Background.EMPTY);
-						//chat.setBackground(Background.EMPTY);
-						chat.addRow(addChatCount, tx);
-						scrPanel.setContent(chat);
-						//Automatic scroll to bottom
-						chat.heightProperty().addListener(new ChangeListener() {
+									@Override
+									public void changed(ObservableValue observable, Object oldvalue, Object newValue) {
 
-							@Override
-							public void changed(ObservableValue observable, Object oldvalue, Object newValue) {
+										scrPanel.setVvalue((Double) newValue);
+									}
+								});
 
-								scrPanel.setVvalue((Double)newValue );
+								System.out.println("Tamaño de StoredIDs: " + storedIds.size());
+								System.out.println("Tamaño de Chats: " + chats.size());
+								System.out.println("Tamaño del contador: " + addChatCount);
+
+								addChatCount++;
 							}
-						});
 
-						System.out.println("Tamaño de StoredIDs: " + storedIds.size());
-						System.out.println("Tamaño de Chats: " + chats.size());
-						System.out.println("Tamaño del contador: " + addChatCount);
-
-						addChatCount++;
+						}
 					}
 				});
 			}
 		};
 
 		Timer chatTimer = new Timer();
-		chatTimer.schedule(addChatTask, 20000, 1000);
+		chatTimer.schedule(addChatTask, 5000, 3000);
 
 	}
 
-	public static void stopAddChatTask(TimerTask addChatTask){
+	public void stopAddChatTask(TimerTask addChatTask){
 		System.out.println("Se cancela el Timer porque no hay mas chats!");
 		addChatTask.cancel();
+		addChatTaskIsStopped = true;
 	}
 
 	public void checkBoxValueChange(ActionEvent actionEvent) {
@@ -211,11 +233,12 @@ public class Controller {
 		txtUsername.setBackground(Background.EMPTY);
 		chat.setBackground(Background.EMPTY);
 		btnCancel.setBackground(Background.EMPTY);
+		//stage.initStyle(StageStyle.TRANSPARENT);
 	}
 
 	private void normalStyle(){
 		splitPane.setDividerPosition(20, 20);
-		scrPanel.setPadding(new Insets(6));
+		//scrPanel.setPadding(new Insets(6));
 		scrPanel.setPannable(true);
 		scrPanel.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 		mainContainer.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
@@ -227,6 +250,7 @@ public class Controller {
 		txtUsername.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 		chat.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
 		btnCancel.setBackground(new Background(new BackgroundFill(Color.LIGHTCORAL, CornerRadii.EMPTY, Insets.EMPTY)));
+		//stage.initStyle(StageStyle.DECORATED);
 	}
 
 	private void changeStatusButtonStart(int status){
@@ -249,6 +273,25 @@ public class Controller {
 			btnCancel.setDisable(true);
 		}
 
+	}
+
+	private void clearAllArraysAndStartAgain(){
+		//Stop all tasks
+		task.cancel();
+		addChatTask.cancel();
+
+		//Reindexing elements
+		chats.clear();
+		storedIds.clear();
+
+		addChatCount = 0;
+		//Resume Operations
+		task.run();
+		addChatsToViewPanel();
+	}
+
+	public void setPrimaryStage(Stage stage){
+		this.stage = stage;
 	}
 
 }

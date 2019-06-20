@@ -15,7 +15,7 @@ public class MixerChatsBuilder {
 
 	public static TextFlow buildChatStringFromJSONObject (JsonElement element, ArrayList<String> storedIds, double scrollWidth){
 
-		String[] fontColors = {"RED", "BLACK", "BLUE", "GREEN", "ORANGE"};
+		String[] fontColors = {"RED", "BLACK", "BLUE", "GREEN", "ORANGE", "WHITE", "ALICEBLUE", "BEIGE", "CHOCOLATE"};
 		Random r = new Random();
 		int randomNumber = r.nextInt((fontColors.length-1 - 0) + 1) + 0;
 		String randomColorSelected = fontColors[randomNumber];
@@ -39,7 +39,7 @@ public class MixerChatsBuilder {
 		String chatId = object.get("id").toString();
 
 		if(!storedIds.contains(chatId)){
-			System.out.println("El ID no está en el Array por lo tanto se agrega.");
+			//System.out.println("El ID no está en el Array por lo tanto se agrega.");
 			storedIds.add(chatId);
 
 			//Get raw chat
@@ -51,7 +51,7 @@ public class MixerChatsBuilder {
 				try {
 					avatar = new Image(partialAvatar);
 				}catch (Exception e){
-					System.out.println(e);
+					//System.out.println(e);
 				}
 			}
 			imgView.setImage(avatar);
@@ -71,10 +71,11 @@ public class MixerChatsBuilder {
 
 			//Add all to text flow
 			finalChat = new TextFlow(imgView, username, msg);
-			finalChat.setPrefWidth(scrollWidthSize - 5);
+			finalChat.setPrefWidth(scrollWidthSize - 10);
 
 		}else{
-			System.out.println("El ID ya se encuentra en el Array.");
+			//System.out.println("El ID ya se encuentra en el Array.");
+			return null;
 		}
 
 		return finalChat;

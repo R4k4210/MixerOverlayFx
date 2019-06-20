@@ -1,25 +1,30 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+
 
 public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("sample.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("sample.fxml"));
+        Parent root = (Parent) loader.load();
         primaryStage.setTitle("Mixer Overlay");
+        Controller controller = (Controller) loader.getController();
+        controller.setPrimaryStage(primaryStage);
         Scene scene = new Scene(root);
         scene.setFill(Color.TRANSPARENT);
         primaryStage.setScene(scene);
         primaryStage.setAlwaysOnTop(true);
-        primaryStage.initStyle(StageStyle.TRANSPARENT);
+	    primaryStage.setOnCloseRequest(e -> Platform.exit());
         primaryStage.show();
+
     }
 
 

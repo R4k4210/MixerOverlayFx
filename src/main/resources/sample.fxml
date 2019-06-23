@@ -2,27 +2,37 @@
 
 <?import java.lang.*?>
 <?import java.net.*?>
+<?import javafx.geometry.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<AnchorPane id="main-anchor" fx:id="mainContainer" minWidth="-Infinity" prefHeight="400.0" prefWidth="400.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="sample.Controller">
+<AnchorPane id="main-anchor" fx:id="mainContainer" maxHeight="-1.0" maxWidth="-1.0" minHeight="-1.0" minWidth="394.0" prefHeight="-1.0" prefWidth="407.0" snapToPixel="true" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="sample.Controller">
   <children>
-    <SplitPane id="split-pane" fx:id="splitPane" dividerPositions="0.15656565656565657" focusTraversable="true" layoutX="0.0" layoutY="0.0" orientation="VERTICAL" prefHeight="400.0" prefWidth="400.0" style="-fx-border-width: 1px;&#10;-fx-border-style: solid;&#10;-fx-border-color: black;">
+    <SplitPane id="split-pane" fx:id="splitPane" dividerPositions="0.21643835616438356" focusTraversable="true" layoutX="0.0" layoutY="0.0" orientation="VERTICAL" prefHeight="-1.0" prefWidth="-1.0" style="-fx-border-width: 1px;&#10;-fx-border-style: solid;&#10;-fx-border-color: black;" visible="true">
       <items>
-        <AnchorPane id="top-anchor" fx:id="topAnchorOnSplitPane" disable="false" minHeight="0.0" minWidth="0.0" prefHeight="71.0" prefWidth="384.0" visible="true">
+        <AnchorPane id="top-anchor" fx:id="topAnchorOnSplitPane" disable="false" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" visible="true">
           <children>
-            <Button id="btn-start-buttom" fx:id="btnStart" layoutX="317.0" layoutY="20.0" mnemonicParsing="false" onMouseClicked="#startChatting" text="Start" />
-            <TextField id="txt-username" fx:id="txtUsername" layoutX="138.0" layoutY="19.0" prefWidth="161.0" />
-            <Label layoutX="58.0" layoutY="22.0" text="Username:" />
-            <CheckBox fx:id="chkHideShow" layoutX="21.0" layoutY="24.0" mnemonicParsing="false" onAction="#checkBoxValueChange" text="" />
+            <Button id="btn-start-buttom" fx:id="btnStart" layoutX="317.0" layoutY="41.0" mnemonicParsing="false" onMouseClicked="#startChatting" text="Start" />
+            <TextField id="txt-username" fx:id="txtUsername" layoutX="138.0" layoutY="41.0" prefWidth="161.0" />
+            <Label layoutX="58.0" layoutY="46.0" text="Username:" />
+            <CheckBox fx:id="chkHideShow" layoutX="21.0" layoutY="46.0" mnemonicParsing="false" onAction="#checkBoxValueChange" text="" />
+            <Button id="btn-start-buttom" fx:id="btnCancel" disable="true" focusTraversable="true" layoutX="317.0" layoutY="40.0" mnemonicParsing="false" onMouseClicked="#cancelChatting" text="Cancel" visible="false" />
+            <Button fx:id="btnClose" layoutX="372.0" layoutY="5.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#closeApp" prefHeight="21.0" prefWidth="21.000099999997474" style="-fx-background-radius: 25px, 25px, 25px, 25px;&#10;" text="x" textAlignment="JUSTIFY">
+              <font>
+                <Font size="10.0" />
+              </font>
+            </Button>
+            <Separator layoutX="-4.0" layoutY="72.0" prefWidth="407.0" style="-fx-background-color: black;&#10;-fx-border-width: 0.2px;&#10;-fx-padding:0px;" />
+            <Separator layoutX="0.0" layoutY="34.0" prefWidth="403.0" style="-fx-background-color: black;&#10;-fx-border-width: 0.2px;&#10;-fx-padding: 0px;&#10;" />
           </children>
         </AnchorPane>
-        <AnchorPane id="bottom-pane" fx:id="bottomAnchorOnSplitPane" minHeight="0.0" minWidth="0.0" prefHeight="288.0" prefWidth="384.0">
+        <AnchorPane id="bottom-pane" fx:id="bottomAnchorOnSplitPane" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0">
           <children>
-            <ScrollPane fx:id="scrPanel" content="$null" disable="false" fitToHeight="true" fitToWidth="true" focusTraversable="false" layoutX="-1.0" layoutY="0.0" mouseTransparent="true" opacity="1.0" prefHeight="333.0" prefWidth="400.0" style="" styleClass="viewport">
+            <ScrollPane fx:id="scrPanel" content="$null" disable="false" fitToHeight="true" fitToWidth="true" focusTraversable="false" layoutX="0.0" layoutY="0.0" mouseTransparent="false" opacity="1.0" prefHeight="283.0" prefWidth="403.0" style="" styleClass="viewport">
               <stylesheets>
                 <URL value="@style.css" />
               </stylesheets>
@@ -30,6 +40,12 @@
           </children>
         </AnchorPane>
       </items>
+      <stylesheets>
+        <URL value="@style.css" />
+      </stylesheets>
     </SplitPane>
   </children>
+  <padding>
+    <Insets />
+  </padding>
 </AnchorPane>

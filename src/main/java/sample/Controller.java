@@ -19,9 +19,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import mixer.api.operation.MixerApiOperation;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -46,9 +44,10 @@ public class Controller {
 	private Button btnStart;
 	@FXML
 	private Button btnCancel;
+	@FXML
+	private Button btnClose;
 
-	private Stage stage;
-
+	private Stage stage = Main.getPrimaryStage();
 
 	public Controller(){
 
@@ -57,7 +56,7 @@ public class Controller {
 	@FXML
 	private void initialize(){
 		normalStyle();
-
+		chat.setPadding(new Insets(0, 10, 0, 0));
 	}
 
 
@@ -68,8 +67,7 @@ public class Controller {
 	public TimerTask task = null;
 	private boolean addChatTaskIsStopped = false;
 	private int chatLimit = 5000;
-
-	boolean firstTimeCalledAPI = false;
+	private boolean isTransparent;
 
 	int addChatCount = 0;
 
@@ -216,8 +214,16 @@ public class Controller {
 	public void checkBoxValueChange(ActionEvent actionEvent) {
 		boolean selected = chkHideShow.isSelected();
 		if(selected){
+			btnCancel.setDisable(true);
+			btnStart.setDisable(true);
+			btnClose.setDisable(true);
+			txtUsername.setDisable(true);
 			transparentStyle();
 		}else{
+			btnCancel.setDisable(false);
+			btnStart.setDisable(false);
+			btnClose.setDisable(false);
+			txtUsername.setDisable(false);
 			normalStyle();
 		}
 
@@ -226,6 +232,7 @@ public class Controller {
 	private void transparentStyle(){
 		mainContainer.setBackground(Background.EMPTY);
 		scrPanel.setBackground(Background.EMPTY);
+		scrPanel.setMouseTransparent(true);
 		splitPane.setBackground(Background.EMPTY);
 		topAnchorOnSplitPane.setBackground(Background.EMPTY);
 		bottomAnchorOnSplitPane.setBackground(Background.EMPTY);
@@ -233,14 +240,16 @@ public class Controller {
 		txtUsername.setBackground(Background.EMPTY);
 		chat.setBackground(Background.EMPTY);
 		btnCancel.setBackground(Background.EMPTY);
-		//stage.initStyle(StageStyle.TRANSPARENT);
+		btnClose.setBackground(Background.EMPTY);
+
+		//Disable windows movement
+		isTransparent = false;
 	}
 
 	private void normalStyle(){
-		splitPane.setDividerPosition(20, 20);
-		//scrPanel.setPadding(new Insets(6));
 		scrPanel.setPannable(true);
 		scrPanel.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+		scrPanel.setMouseTransparent(false);
 		mainContainer.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
 		scrPanel.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
 		splitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
@@ -250,7 +259,10 @@ public class Controller {
 		txtUsername.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 		chat.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
 		btnCancel.setBackground(new Background(new BackgroundFill(Color.LIGHTCORAL, CornerRadii.EMPTY, Insets.EMPTY)));
-		//stage.initStyle(StageStyle.DECORATED);
+		btnClose.setBackground(new Background(new BackgroundFill(Color.INDIANRED, CornerRadii.EMPTY, Insets.EMPTY)));
+
+		//Enable to move the windows
+		isTransparent = true;
 	}
 
 	private void changeStatusButtonStart(int status){
@@ -290,8 +302,108 @@ public class Controller {
 		addChatsToViewPanel();
 	}
 
-	public void setPrimaryStage(Stage stage){
-		this.stage = stage;
+
+	public void closeApp(ActionEvent actionEvent) {
+
+		if(task != null){
+			task.cancel();
+		}
+		if(addChatTask != null){
+			addChatTask.cancel();
+		}
+
+		Platform.exit();
+
 	}
 
+
+	//Getters and Setters
+
+	public TextField getTxtUsername() {
+		return txtUsername;
+	}
+
+	public void setTxtUsername(TextField txtUsername) {
+		this.txtUsername = txtUsername;
+	}
+
+	public ScrollPane getScrPanel() {
+		return scrPanel;
+	}
+
+	public void setScrPanel(ScrollPane scrPanel) {
+		this.scrPanel = scrPanel;
+	}
+
+	public CheckBox getChkHideShow() {
+		return chkHideShow;
+	}
+
+	public void setChkHideShow(CheckBox chkHideShow) {
+		this.chkHideShow = chkHideShow;
+	}
+
+	public AnchorPane getMainContainer() {
+		return mainContainer;
+	}
+
+	public void setMainContainer(AnchorPane mainContainer) {
+		this.mainContainer = mainContainer;
+	}
+
+	public SplitPane getSplitPane() {
+		return splitPane;
+	}
+
+	public void setSplitPane(SplitPane splitPane) {
+		this.splitPane = splitPane;
+	}
+
+	public AnchorPane getTopAnchorOnSplitPane() {
+		return topAnchorOnSplitPane;
+	}
+
+	public void setTopAnchorOnSplitPane(AnchorPane topAnchorOnSplitPane) {
+		this.topAnchorOnSplitPane = topAnchorOnSplitPane;
+	}
+
+	public AnchorPane getBottomAnchorOnSplitPane() {
+		return bottomAnchorOnSplitPane;
+	}
+
+	public void setBottomAnchorOnSplitPane(AnchorPane bottomAnchorOnSplitPane) {
+		this.bottomAnchorOnSplitPane = bottomAnchorOnSplitPane;
+	}
+
+	public Button getBtnStart() {
+		return btnStart;
+	}
+
+	public void setBtnStart(Button btnStart) {
+		this.btnStart = btnStart;
+	}
+
+	public Button getBtnCancel() {
+		return btnCancel;
+	}
+
+	public void setBtnCancel(Button btnCancel) {
+		this.btnCancel = btnCancel;
+	}
+
+	public Button getBtnClose() {
+		return btnClose;
+	}
+
+	public void setBtnClose(Button btnClose) {
+		this.btnClose = btnClose;
+	}
+
+	public boolean isTransparent() {
+		return isTransparent;
+	}
+
+	public void setTransparent(boolean transparent) {
+		isTransparent = transparent;
+	}
 }

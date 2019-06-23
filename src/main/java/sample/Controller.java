@@ -149,6 +149,8 @@ public class Controller {
 		changeStatusButtonStart(0);
 		changeStatusButtonCancel(1);
 		chats.clear();
+		chat.getChildren().clear();
+		addChatCount = 0;
 	}
 
 

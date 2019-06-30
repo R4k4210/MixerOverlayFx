@@ -34,7 +34,7 @@ public class Main extends Application {
         primaryStage.setTitle("Mixer Overlay");
         primaryStage.initStyle(StageStyle.TRANSPARENT);
 
-        Scene scene = new Scene(root, 407, 372);
+        Scene scene = new Scene(root, 314, 500);
         scene.setFill(Color.TRANSPARENT);
 
         primaryStage.setScene(scene);
@@ -47,17 +47,21 @@ public class Main extends Application {
 
         controller = loader.getController();
         ResizeHelper.controller = controller;
+        
+        ConfigurationController.sampleController = controller;
+        
 
         //bind nodes to stage size
 
-        //controller.getMainContainer().prefWidthProperty().bind(primaryStage.widthProperty());
+        controller.getMainContainer().prefWidthProperty().bind(primaryStage.widthProperty());
         //controller.getMainContainer().prefHeightProperty().bind(primaryStage.heightProperty());
-        //controller.getSplitPane().prefWidthProperty().bind(primaryStage.widthProperty());
+        controller.getSplitPane().prefWidthProperty().bind(primaryStage.widthProperty());
         //controller.getSplitPane().prefHeightProperty().bind(primaryStage.heightProperty());
         //bind scrollpane to bottom anchorPane
-        //controller.getScrPanel().prefHeightProperty().bind(controller.getBottomAnchorOnSplitPane().heightProperty());
-        //controller.getScrPanel().prefWidthProperty().bind(controller.getBottomAnchorOnSplitPane().widthProperty());
-
+        controller.getScrPanel().prefHeightProperty().bind(controller.getBottomAnchorOnSplitPane().heightProperty());
+        controller.getScrPanel().prefWidthProperty().bind(controller.getBottomAnchorOnSplitPane().widthProperty());
+        controller.getOpacityWindows().prefWidthProperty().bind(controller.getScrPanel().widthProperty());
+        controller.getOpacityWindows().prefHeightProperty().bind(controller.getScrPanel().heightProperty());
 
     }
 

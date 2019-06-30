@@ -20,7 +20,7 @@ public class MixerApiOperation {
 		con.setRequestMethod("GET");
 		int status = con.getResponseCode();
 		JsonArray jsonArray = null;
-		System.out.println("Status: " + status);
+		//System.out.println("Status: " + status);
 
 		if(status == 200){
 			BufferedReader in = new BufferedReader(

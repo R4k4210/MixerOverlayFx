@@ -1,6 +1,9 @@
 package sample;
 
 import chats.MixerChatsBuilder;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.mixer.api.MixerAPI;
@@ -11,14 +14,17 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import mixer.api.operation.MixerApiOperation;
 import java.io.IOException;
 import java.util.*;
@@ -26,26 +32,19 @@ import java.util.concurrent.ExecutionException;
 
 public class Controller {
 
-	@FXML
-	private TextField txtUsername;
-	@FXML
-	private ScrollPane scrPanel;
-	@FXML
-	private CheckBox chkHideShow;
-	@FXML
-	private AnchorPane mainContainer;
-	@FXML
-	private SplitPane splitPane;
-	@FXML
-	private AnchorPane topAnchorOnSplitPane;
-	@FXML
-	private AnchorPane bottomAnchorOnSplitPane;
-	@FXML
-	private Button btnStart;
-	@FXML
-	private Button btnCancel;
-	@FXML
-	private Button btnClose;
+	@FXML private TextField txtUsername;
+	@FXML private ScrollPane scrPanel;
+	@FXML private CheckBox chkHideShow;
+	@FXML private AnchorPane mainContainer;
+	@FXML private SplitPane splitPane;
+	@FXML private AnchorPane topAnchorOnSplitPane;
+	@FXML private AnchorPane bottomAnchorOnSplitPane;
+	@FXML private Button btnStart;
+	@FXML private Button btnCancel;
+	@FXML private Button btnClose;
+	@FXML private MenuBar mnbMenu;
+	@FXML private MenuItem btmMenuItem;
+	@FXML private AnchorPane opacityWindows;
 
 	private Stage stage = Main.getPrimaryStage();
 
@@ -59,7 +58,6 @@ public class Controller {
 		chat.setPadding(new Insets(0, 10, 0, 0));
 	}
 
-
 	public ArrayList<String> storedIds = new ArrayList<String>();
 	public ArrayList<TextFlow> chats = new ArrayList<TextFlow>();
 	public GridPane chat = new GridPane();
@@ -68,6 +66,9 @@ public class Controller {
 	private boolean addChatTaskIsStopped = false;
 	private int chatLimit = 5000;
 	private boolean isTransparent;
+	private double customOpacity = 1;
+	private int addChatDelay = 1000;
+	private int apiCallDelay = 5000;
 
 	int addChatCount = 0;
 
@@ -81,50 +82,54 @@ public class Controller {
 			scrPanel.setContent(tx);
 
 		} else {
-
+			
+			MixerAPI mixer = new MixerAPI("Click here to get your Client ID!");;
+			MixerChannel channel = null;
+			
+			try {
+				channel = mixer.use(ChannelsService.class).findOneByToken(username).get();
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
+			} catch (ExecutionException ex) {
+				ex.printStackTrace();
+			}
+			
+			//65962121
+			int channelId = channel.id;
+			
 			task = new TimerTask() {
 
 				@Override
 				public void run() {
-					MixerAPI mixer = null;
-					mixer = new MixerAPI("Click here to get your Client ID!");
-					MixerChannel channel = null;
-
-					try {
-						channel = mixer.use(ChannelsService.class).findOneByToken(username).get();
-					} catch (InterruptedException ex) {
-						ex.printStackTrace();
-					} catch (ExecutionException ex) {
-						ex.printStackTrace();
-					}
-
-					//65962121
-					int channelId = channel.id;
-
+					
 					JsonArray jsonResponse = null;
 
 					try {
 						jsonResponse = MixerApiOperation.getHistoryByChannelId(channelId);
 					} catch (IOException ex) {
 						ex.printStackTrace();
+						System.out.println("Error getting chat history \n" + ex);
 					}
-
+					System.out.println("Empieza = " + new Date());
 					for (JsonElement obj : jsonResponse) {
 
 						double scrollWidth = scrPanel.getWidth();
+
 						try {
 							TextFlow chatToAdd = new TextFlow(MixerChatsBuilder.buildChatStringFromJSONObject(obj, storedIds, scrollWidth));
-							chatToAdd.setPrefWidth(scrPanel.getWidth());
-							chats.add(chatToAdd);
+							if(chatToAdd != null) {
+								chatToAdd.setPrefWidth(scrPanel.getWidth());
+								chats.add(chatToAdd);
+							}
 						}catch (Exception e){
-							//System.out.println(e);
+							//System.out.println("Error building TextFlow String \n" + e);
 						}
 
 					}
-
+					System.out.println("Finaliza = " + new Date());
 					if(addChatTaskIsStopped){
 						if((chats.size() - 1) > addChatCount){
-							//System.out.println("Hay nuevos chats, podemos seguis agregando!!");
+							System.out.println("chats size greater than counter, resume add chat task.");
 							addChatTaskIsStopped = false;
 							addChatsToViewPanel();
 						}
@@ -134,7 +139,7 @@ public class Controller {
 			};
 
 			Timer timer = new Timer();
-			timer.schedule(task, new Date(), 5000);
+			timer.schedule(task, new Date(), apiCallDelay);
 
 			addChatsToViewPanel();
 			changeStatusButtonStart(1);
@@ -167,18 +172,29 @@ public class Controller {
 
 						//If counter is equal to the number of chats on array, stop the task
 						if((chats.size() - 1) == addChatCount){
+							System.out.println("chats equals counter, stopping chat task.");
 							stopAddChatTask(addChatTask);
 						}else {
 							if(addChatCount >= chatLimit){
+								System.out.println("counter greater than chatLimit, reseting application.");
 								chat.getChildren().clear();
 								clearAllArraysAndStartAgain();
 							}else{
-								//System.out.println("Se agrega un textflow al scroll panel");
-								TextFlow tx = new TextFlow(chats.get(addChatCount));
-								tx.setBackground(Background.EMPTY);
-								tx.setPadding(new Insets(6));
-								chat.addRow(addChatCount, tx);
-								scrPanel.setContent(chat);
+								if(addChatCount > chats.size()) {
+									addChatCount = 0;
+									System.out.println("counter and chat size are equals, reset counter.");
+								}
+								try {
+									
+									TextFlow tx = new TextFlow(chats.get(addChatCount));
+									tx.setBackground(Background.EMPTY);
+									tx.setPadding(new Insets(6));
+									chat.addRow(addChatCount, tx);
+									scrPanel.setContent(chat);
+									
+								}catch(Exception e) {
+									e.printStackTrace();
+								}
 								//Automatic scroll to bottom
 								chat.heightProperty().addListener(new ChangeListener() {
 
@@ -188,10 +204,6 @@ public class Controller {
 										scrPanel.setVvalue((Double) newValue);
 									}
 								});
-
-								System.out.println("Tamaño de StoredIDs: " + storedIds.size());
-								System.out.println("Tamaño de Chats: " + chats.size());
-								System.out.println("Tamaño del contador: " + addChatCount);
 
 								addChatCount++;
 							}
@@ -203,12 +215,11 @@ public class Controller {
 		};
 
 		Timer chatTimer = new Timer();
-		chatTimer.schedule(addChatTask, 5000, 3000);
+		chatTimer.schedule(addChatTask, new Date(), addChatDelay);
 
 	}
 
 	public void stopAddChatTask(TimerTask addChatTask){
-		System.out.println("Se cancela el Timer porque no hay mas chats!");
 		addChatTask.cancel();
 		addChatTaskIsStopped = true;
 	}
@@ -229,42 +240,6 @@ public class Controller {
 			normalStyle();
 		}
 
-	}
-
-	private void transparentStyle(){
-		mainContainer.setBackground(Background.EMPTY);
-		scrPanel.setBackground(Background.EMPTY);
-		scrPanel.setMouseTransparent(true);
-		splitPane.setBackground(Background.EMPTY);
-		topAnchorOnSplitPane.setBackground(Background.EMPTY);
-		bottomAnchorOnSplitPane.setBackground(Background.EMPTY);
-		btnStart.setBackground(Background.EMPTY);
-		txtUsername.setBackground(Background.EMPTY);
-		chat.setBackground(Background.EMPTY);
-		btnCancel.setBackground(Background.EMPTY);
-		btnClose.setBackground(Background.EMPTY);
-
-		//Disable windows movement
-		isTransparent = false;
-	}
-
-	private void normalStyle(){
-		scrPanel.setPannable(true);
-		scrPanel.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-		scrPanel.setMouseTransparent(false);
-		mainContainer.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-		scrPanel.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-		splitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-		topAnchorOnSplitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-		bottomAnchorOnSplitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-		btnStart.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-		txtUsername.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-		chat.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
-		btnCancel.setBackground(new Background(new BackgroundFill(Color.LIGHTCORAL, CornerRadii.EMPTY, Insets.EMPTY)));
-		btnClose.setBackground(new Background(new BackgroundFill(Color.INDIANRED, CornerRadii.EMPTY, Insets.EMPTY)));
-
-		//Enable to move the windows
-		isTransparent = true;
 	}
 
 	private void changeStatusButtonStart(int status){
@@ -303,6 +278,19 @@ public class Controller {
 		task.run();
 		addChatsToViewPanel();
 	}
+	
+	
+	public void openSettingsWindows(ActionEvent actionEvent) throws IOException {
+		FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("configuration.fxml"));
+		Parent root = (Parent) loader.load();
+        Stage stage = new Stage();
+        stage.setTitle("Settings");
+        stage.setScene(new Scene(root, 400, 400));
+        stage.setAlwaysOnTop(true);
+        stage.initStyle(StageStyle.UNDECORATED);
+        stage.show();
+		
+	}
 
 
 	public void closeApp(ActionEvent actionEvent) {
@@ -317,6 +305,52 @@ public class Controller {
 		Platform.exit();
 
 	}
+	
+	private void transparentStyle(){
+		opacityWindows.setBackground(new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY)));
+		opacityWindows.setOpacity(customOpacity);
+		opacityWindows.setMouseTransparent(true);
+		mainContainer.setBackground(Background.EMPTY);
+		scrPanel.setBackground(Background.EMPTY);
+		scrPanel.setMouseTransparent(true);
+		splitPane.setBackground(Background.EMPTY);
+		topAnchorOnSplitPane.setBackground(Background.EMPTY);
+		bottomAnchorOnSplitPane.setBackground(Background.EMPTY);
+		btnStart.setBackground(Background.EMPTY);
+		txtUsername.setBackground(Background.EMPTY);
+		chat.setBackground(Background.EMPTY);
+		btnCancel.setBackground(Background.EMPTY);
+		btnClose.setBackground(Background.EMPTY);
+		mnbMenu.setBackground(Background.EMPTY);
+		mnbMenu.setMouseTransparent(true);
+
+		//Disable windows movement
+		isTransparent = false;
+	}
+
+	private void normalStyle(){
+		scrPanel.setPannable(true);
+		scrPanel.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+		scrPanel.setMouseTransparent(false);
+		opacityWindows.setMouseTransparent(false);
+		opacityWindows.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		mainContainer.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		scrPanel.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		splitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		topAnchorOnSplitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		bottomAnchorOnSplitPane.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		btnStart.setBackground(new Background(new BackgroundFill(Color.LIGHTBLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+		txtUsername.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
+		chat.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		btnCancel.setBackground(new Background(new BackgroundFill(Color.LIGHTCORAL, CornerRadii.EMPTY, Insets.EMPTY)));
+		btnClose.setBackground(new Background(new BackgroundFill(Color.INDIANRED, CornerRadii.EMPTY, Insets.EMPTY)));
+		mnbMenu.setBackground(new Background(new BackgroundFill(Color.WHITESMOKE, CornerRadii.EMPTY, Insets.EMPTY)));
+		mnbMenu.setMouseTransparent(false);
+
+		//Enable to move the windows
+		isTransparent = true;
+	}
+
 
 
 	//Getters and Setters
@@ -408,4 +442,39 @@ public class Controller {
 	public void setTransparent(boolean transparent) {
 		isTransparent = transparent;
 	}
+
+	public double getCustomOpacity() {
+		return customOpacity;
+	}
+
+	public void setCustomOpacity(double customOpacity) {
+		this.customOpacity = customOpacity;
+	}
+
+	public int getAddChatDelay() {
+		return addChatDelay;
+	}
+
+	public void setAddChatDelay(int addChatDelay) {
+		this.addChatDelay = addChatDelay;
+	}
+
+	public int getApiCallDelay() {
+		return apiCallDelay;
+	}
+
+	public void setApiCallDelay(int apiCallDelay) {
+		this.apiCallDelay = apiCallDelay;
+	}
+
+	public AnchorPane getOpacityWindows() {
+		return opacityWindows;
+	}
+
+	public void setOpacityWindows(AnchorPane opacityWindows) {
+		this.opacityWindows = opacityWindows;
+	}
+	
+	
+	
 }

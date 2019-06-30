@@ -17,15 +17,18 @@
                     <target>8</target>
                 </configuration>
             </plugin>
+ 			<plugin>
+			    <groupId>com.zenjava</groupId>
+			    <artifactId>javafx-maven-plugin</artifactId>
+			    <version>8.8.3</version>
+			    <configuration>
+			        <mainClass>sample.Main</mainClass>
+			    </configuration>
+			</plugin>
         </plugins>
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>com.mixer</groupId>
-            <artifactId>mixer-interactive-api</artifactId>
-            <version>3.2.0</version>
-        </dependency>
         <dependency>
             <groupId>com.mixer</groupId>
             <artifactId>api</artifactId>
@@ -40,11 +43,13 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>11</version>
+            <classifier>linux</classifier>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>11</version>
+            <classifier>linux</classifier>
         </dependency>
     </dependencies>
 

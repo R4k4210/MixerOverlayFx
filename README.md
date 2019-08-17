@@ -11,7 +11,7 @@ The only thing you need is your Mixer username and that's all!
 
 I wish this tool helps all the one-monitor streamers!
 
-Just donwload the .zip and extract it, then double click on MixerChatOverlay.jar.
+Just donwload the MixerChatOverlay.jar!.
 
 Bye!
 
